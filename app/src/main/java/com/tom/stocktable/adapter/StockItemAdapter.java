@@ -18,6 +18,7 @@ import java.util.Random;
 
 public class StockItemAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapter.StockItemAdapter.ItemViewHolder> {
 
+    private Boolean isUp;
     private List<String> detailDatas;
 
     private Context mContext;
@@ -27,7 +28,8 @@ public class StockItemAdapter extends RecyclerView.Adapter<com.tom.stocktable.ad
     }
 
 
-    public void setDetailDatas(List<String> detailDatas) {
+    public void setDetailDatas(List<String> detailDatas, Boolean isUp) {
+        this.isUp = isUp;
         this.detailDatas = detailDatas;
         notifyDataSetChanged();
     }
@@ -43,14 +45,10 @@ public class StockItemAdapter extends RecyclerView.Adapter<com.tom.stocktable.ad
     @Override
     public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
         holder.mTabView.setText(detailDatas.get(position));
-        //Todo 目前隨機產生顏色
-        int random = new Random().nextInt(3);
-        if (random == 1) {
-            holder.mTabView.setTextColor(mContext.getResources().getColor(R.color.tabTextColor));// 灰色
-        } else if (random == 2) {
-            holder.mTabView.setTextColor(mContext.getResources().getColor(R.color.greenColor));// 绿色
+        if (isUp) {
+            holder.mTabView.setTextColor(mContext.getResources().getColor(R.color.redColor));// 灰色
         } else {
-            holder.mTabView.setTextColor(mContext.getResources().getColor(R.color.redColor));// 红色
+            holder.mTabView.setTextColor(mContext.getResources().getColor(R.color.greenColor));// 绿色
         }
     }
 

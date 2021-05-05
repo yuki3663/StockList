@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.tom.stocktable.CustomizeScrollView;
 import com.tom.stocktable.R;
 import com.tom.stocktable.model.StockData;
+import com.tom.stocktable.model.StockDetailData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,8 @@ public class StockAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapte
 
     private OnTabScrollViewListener onTabScrollViewListener;
 
-    private List<StockData> StockDatas;
+    private List<StockData> StockDatas = new ArrayList<>();
+    private List<StockDetailData> StockDetailDatas= new ArrayList<>();
 
     private Context mContext;
 
@@ -41,8 +43,9 @@ public class StockAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapte
         this.onTabScrollViewListener = onTabScrollViewListener;
     }
 
-    public void setStockDatas(List<StockData> stockDatas) {
+    public void setStockDatas(List<StockData> stockDatas, List<StockDetailData> stockDetailDatas) {
         this.StockDatas = stockDatas;
+        this.StockDetailDatas = stockDetailDatas;
         notifyDataSetChanged();
     }
 
@@ -70,7 +73,7 @@ public class StockAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapte
         // TODO：文本RecyclerView中具體信息的RecyclerView（RecyclerView嵌套）
         StockItemAdapter stockItemAdapter = new StockItemAdapter(mContext);
         holder.mStockRecyclerView.setAdapter(stockItemAdapter);
-        stockItemAdapter.setDetailDatas(StockDatas.get(position).getDetails());
+        stockItemAdapter.setDetailDatas(StockDatas.get(position).getDetails(), StockDetailDatas.get(position).isUp());
 
         if (!recyclerViewHolder.contains(holder)) {
             recyclerViewHolder.add(holder);
