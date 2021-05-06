@@ -15,12 +15,12 @@ interface StockPriceApi {
 
 }
 
- /*
+/*
 const val STOCK_PRICE_URL = "https://www.twse.com.tw/exchangeReport/"
 
 interface StockPriceApi {
 
-    @GET("/STOCK_DAY_ALL")
-    fun getAllPrice(@Query("response") response: String = "json"): Call<List<StockPriceData>>
+    @GET("STOCK_DAY_ALL")
+    fun getAllPrice(@Query("response") response: String = "open_dat"): Call<List<StockPriceData>>
 
 }*/

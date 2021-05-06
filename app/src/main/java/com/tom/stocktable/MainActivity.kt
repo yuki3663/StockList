@@ -11,6 +11,7 @@ import com.tom.stocktable.adapter.StockAdapter
 import com.tom.stocktable.adapter.TabAdapter
 import com.tom.stocktable.model.StockData
 import com.tom.stocktable.model.StockDetailData
+import com.tom.stocktable.model.StockOpenData
 import com.tom.stocktable.network.NetworkManager
 import com.tom.stocktable.network.StockPriceApi
 import com.tom.stocktable.network.StockPriceData
@@ -25,9 +26,9 @@ import java.util.Random
 
 class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
 {
-    private val maxStockAmount = 50;
-    private val perChangeStock = 10;
-    private val maxRange = 10;
+    private val maxStockAmount = 50
+    private val perChangeStock = 10
+    private val maxRange = 10
 
     lateinit var mainHandler: Handler
     //上方Tab欄ScrollView
@@ -52,6 +53,7 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
     private var stockDataList: MutableList<StockData> = mutableListOf()
     private var stockDetailDataList: MutableList<StockDetailData> = mutableListOf()
 
+    private var nowUpdateSpeed : Long = 1000
     private var isDataFinish = false
 
     private val updateStockTask = object : Runnable {
@@ -60,7 +62,7 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
             {
                 randomUpDown()
             }
-            mainHandler.postDelayed(this, 1000)
+            mainHandler.postDelayed(this, nowUpdateSpeed)
         }
     }
 
@@ -121,10 +123,17 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
                 super.onScrolled(recyclerView, dx, dy)
                 val viewHolders: List<StockAdapter.ViewHolder> = mStockAdapter?.recyclerViewHolder!!
                 for (viewHolder in viewHolders) {
-                    viewHolder.mStockScrollView.scrollTo(mStockAdapter?.getOffestX()!!, 0)
+                    viewHolder.mStockScrollView.scrollTo(mStockAdapter?.offestX!!, 0)
                 }
             }
         })
+        refreshButton.setOnClickListener{
+            val inputSpeed = ed_hopeSpeed.text.toString()
+            if(inputSpeed.isEmpty())
+                return@setOnClickListener
+            nowUpdateSpeed = inputSpeed.toLong()
+            nowSpeed.text = inputSpeed
+        }
     }
 
 
@@ -149,7 +158,8 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
                 response: Response<List<StockPriceData>>,
             ) {
                 Log.d("MainActivity", "response: ${response.body().toString()}")
-                response.body()?.let { convertUpdateData(it) }
+                response.body()?.let {
+                    convertUpdateData(filterTopStock(it))}
                 isDataFinish = true
             }
 
@@ -163,8 +173,6 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
         stockDataList.clear()
         for (i in netData.indices)
         {
-            if(i >= maxStockAmount)
-                break
             val detailsList: MutableList<String> = mutableListOf()
             if(netData[i].closePrice.isEmpty())
                 continue
@@ -218,6 +226,18 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
             changeStockDetail(randomStockInx)
         }
         mStockAdapter?.setStockDatas(stockDataList, stockDetailDataList)
+    }
+    private fun filterTopStock(netData : List<StockPriceData>) : List<StockPriceData>
+    {
+        val topList: MutableList<StockPriceData> = mutableListOf()
+        for (i in netData.indices)
+        {
+            if(StockOpenData.topStockList.contains(netData[i].stockId))
+            {
+                topList.add(netData[i])
+            }
+        }
+        return topList
     }
     override fun scrollTo(l: Int, t: Int) {
         if (headHorizontalScrollView != null) {

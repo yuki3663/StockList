@@ -19,6 +19,7 @@ object NetworkManager
         return Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(STOCK_PRICE_URL)
+            //.addConverterFactory(CsvConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

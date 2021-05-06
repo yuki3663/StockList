@@ -8,6 +8,8 @@ data class StockPriceData(
         val stockId: String,
         @SerializedName("證券名稱")
         val name: String,
+        @SerializedName("成交金額")
+        val allDealPrice: String,
         @SerializedName("收盤價")
         val closePrice: String,
         @SerializedName("漲跌價差")
