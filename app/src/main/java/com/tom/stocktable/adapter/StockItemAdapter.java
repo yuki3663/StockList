@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.tom.stocktable.R;
 
 import java.util.List;
-import java.util.Random;
 
 
 public class StockItemAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapter.StockItemAdapter.ItemViewHolder> {

@@ -18,6 +18,7 @@ import com.tom.stocktable.model.StockDetailData;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
 
 
 public class StockAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapter.StockAdapter.ViewHolder> {
