@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 
 
 import com.tom.stocktable.CustomizeScrollView;
@@ -23,6 +24,7 @@ import java.util.logging.Handler;
 
 public class StockAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapter.StockAdapter.ViewHolder> {
 
+    private ViewHolder viewHolder;
     //股票列表ViewHolder集合
     private List<ViewHolder> recyclerViewHolder = new ArrayList<>();
     
@@ -44,10 +46,21 @@ public class StockAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapte
         this.onTabScrollViewListener = onTabScrollViewListener;
     }
 
-    public void setStockDatas(List<StockData> stockDatas, List<StockDetailData> stockDetailDatas) {
+    public void setStockDatas(List<StockData> stockDatas, List<StockDetailData> stockDetailDatas)
+    {
         this.StockDatas = stockDatas;
         this.StockDetailDatas = stockDetailDatas;
         notifyDataSetChanged();
+        /*for (ViewHolder viewHolder :recyclerViewHolder)
+        {
+            viewHolder.mStockScrollView.scrollTo(offestX, 0);
+        }*/
+    }
+    public void updateStockDatas(int index, StockData stockData, StockDetailData stockDetailData)
+    {
+        StockDatas.set(index, stockData);
+        StockDetailDatas.set(index, stockDetailData);
+        notifyItemChanged(index);
     }
 
     public List<ViewHolder> getRecyclerViewHolder() {
@@ -60,26 +73,40 @@ public class StockAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapte
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    {
         View view = LayoutInflater.from(mContext).inflate(R.layout.item_content_layout, parent, false);
-        return new ViewHolder(view);
+        viewHolder = new ViewHolder(view);
+        return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
-        holder.mStockName.setText(StockDatas.get(position).getStockName());
-        holder.mStockRecyclerView.setLayoutManager(new LinearLayoutManager(mContext, RecyclerView.HORIZONTAL, false));
-        holder.mStockRecyclerView.setNestedScrollingEnabled(false);
-
-        // TODO：文本RecyclerView中具體信息的RecyclerView（RecyclerView嵌套）
-        StockItemAdapter stockItemAdapter = new StockItemAdapter(mContext);
-        holder.mStockRecyclerView.setAdapter(stockItemAdapter);
-        stockItemAdapter.setDetailDatas(StockDatas.get(position).getDetails(), StockDetailDatas.get(position).isUp());
-
-        if (!recyclerViewHolder.contains(holder)) {
-            recyclerViewHolder.add(holder);
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position)
+    {
+        if(!holder.mStockName.getText().toString().equals(StockDatas.get(position).getStockName()))
+        {
+            holder.mStockName.setText(StockDatas.get(position).getStockName());
         }
 
+        if (!recyclerViewHolder.contains(holder))
+        {
+            holder.mStockRecyclerView.setLayoutManager(new LinearLayoutManager(mContext, RecyclerView.HORIZONTAL, false));
+            holder.mStockRecyclerView.setNestedScrollingEnabled(false);
+
+            // TODO：文本RecyclerView中具體信息的RecyclerView（RecyclerView嵌套）
+            StockItemAdapter stockItemAdapter = new StockItemAdapter(mContext);
+            holder.mStockRecyclerView.setAdapter(stockItemAdapter);
+            stockItemAdapter.setDetailDatas(StockDatas.get(position).getDetails(),
+                    StockDetailDatas.get(position).isUp(), StockDetailDatas.get(position).isSetup());
+            recyclerViewHolder.add(holder);
+        }
+        else
+        {
+            StockItemAdapter stockItemAdapter = (StockItemAdapter)holder.mStockRecyclerView.getAdapter();
+            stockItemAdapter.setDetailDatas(StockDatas.get(position).getDetails(),
+                    StockDetailDatas.get(position).isUp(), StockDetailDatas.get(position).isSetup());
+            //viewHolder.mStockScrollView.scrollTo(offestX, 0);
+        }
         /**
          * 第一步：水平滑動item時，遍歷所有ViewHolder，使得整個列表的HorizontalScrollView同步滑動
          */
@@ -101,7 +128,6 @@ public class StockAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapte
                 }
             }
         });
-
 
     }
 

@@ -34,6 +34,8 @@ android {
 }
 
 dependencies {
+    //ViewModel and livedata
+    implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     // Retrofit
     implementation "com.squareup.retrofit2:retrofit:$version_retrofit"
     implementation "com.squareup.retrofit2:converter-gson:$version_retrofit"

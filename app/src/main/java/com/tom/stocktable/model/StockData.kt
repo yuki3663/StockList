@@ -6,7 +6,8 @@ data class StockDetailData(var price:Float,
                            var upDown:Float,
                            var range:Float,
                            var time:String,
-                           var isUp:Boolean)
+                           var isUp:Boolean,
+                           var isSetup:Boolean)
 class StockOpenData
 {
     companion object{
@@ -21,4 +22,8 @@ class StockOpenData
             "3346","4938","8183","8069"
         )
     }
+}
+enum class DataState
+{
+    None, NetUpdate, NetFinish
 }

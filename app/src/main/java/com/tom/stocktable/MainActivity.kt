@@ -3,34 +3,24 @@ package com.tom.stocktable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.tom.stocktable.adapter.StockAdapter
 import com.tom.stocktable.adapter.TabAdapter
-import com.tom.stocktable.model.StockData
-import com.tom.stocktable.model.StockDetailData
-import com.tom.stocktable.model.StockOpenData
-import com.tom.stocktable.network.NetworkManager
-import com.tom.stocktable.network.StockPriceApi
-import com.tom.stocktable.network.StockPriceData
+import com.tom.stocktable.model.DataState
+import com.tom.stocktable.viewModel.StockViewModel
 import kotlinx.android.synthetic.main.activity_main.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Random
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
 {
-    private val maxStockAmount = 50
-    private val perChangeStock = 10
-    private val maxRange = 10
-
     lateinit var mainHandler: Handler
+    // Create a viewModel
+    private lateinit var viewModel : StockViewModel
     //上方Tab欄ScrollView
     private var headHorizontalScrollView: CustomizeScrollView? = null
 
@@ -49,18 +39,16 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
     //上方Tab欄標題
     private val tabValues = listOf("成交價", "漲跌", "幅度", "更新時間")
 
-    //下方列表RecyclerView資料
-    private var stockDataList: MutableList<StockData> = mutableListOf()
-    private var stockDetailDataList: MutableList<StockDetailData> = mutableListOf()
 
     private var nowUpdateSpeed : Long = 1000
+    private var lineEffectTime : Long = 750
     private var isDataFinish = false
 
     private val updateStockTask = object : Runnable {
         override fun run() {
             if(isDataFinish)
             {
-                randomUpDown()
+                viewModel.randomUpDown()
             }
             mainHandler.postDelayed(this, nowUpdateSpeed)
         }
@@ -72,6 +60,7 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
         mHeadRecyclerView = headRecyclerView
         mContentRecyclerView = contentRecyclerView
         headHorizontalScrollView = headScrollView
+        viewModel = ViewModelProvider(this).get(StockViewModel::class.java)
 
         //上方Tab欄RecycleView
         // 設置RecyclerView水平顯示
@@ -83,13 +72,16 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
         initTabData()
 
         //下方列表RecyclerView
+        (mContentRecyclerView?.itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
         mContentRecyclerView?.layoutManager = LinearLayoutManager(this)
         mStockAdapter = StockAdapter(this)
         mContentRecyclerView?.adapter = mStockAdapter
         mStockAdapter?.setOnTabScrollViewListener(this)
 
-        initStockData()
         initListener()
+        viewModel.initStockData()
+        observeStockData()
+        observeStockRandomList()
         mainHandler = Handler(Looper.getMainLooper())
     }
     override fun onPause() {
@@ -102,6 +94,7 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
         mainHandler.post(updateStockTask)
     }
     private fun initListener() {
+
         /**
          * 第三步：上方Tab欄HorizontalScrollView水平滑動時，遍歷所有下方RecyclerView列表，並使其跟隨滾動
          */
@@ -143,101 +136,46 @@ class MainActivity : AppCompatActivity() , StockAdapter.OnTabScrollViewListener
     private fun initTabData() {
         mTabAdapter?.setTabData(tabValues)
     }
-
-    /**
-     * 初始化下方列表
-     */
-    private fun initStockData()
+    
+    private fun observeStockData()
     {
-        val apiService = NetworkManager.provideRetrofit(NetworkManager.provideOkHttpClient())
-                .create(StockPriceApi::class.java)
-
-        apiService.getAllPrice().enqueue(object : Callback<List<StockPriceData>> {
-            override fun onResponse(
-                call: Call<List<StockPriceData>>,
-                response: Response<List<StockPriceData>>,
-            ) {
-                Log.d("MainActivity", "response: ${response.body().toString()}")
-                response.body()?.let {
-                    convertUpdateData(filterTopStock(it))}
-                isDataFinish = true
-            }
-
-            override fun onFailure(call: Call<List<StockPriceData>>, t: Throwable) {
-                Log.d("MainActivity", "error: ${t.message}")
+        viewModel.dataStateLiveData.observe(this, androidx.lifecycle.Observer {
+            var stockList = viewModel.getStockDataList()
+            var stockDetailList = viewModel.getStockDetailDataList()
+            when(it)
+            {
+                DataState.NetUpdate -> {
+                    mStockAdapter?.setStockDatas(stockList, stockDetailList)
+                    viewModel.dataStateLiveData.postValue(DataState.NetFinish)
+                }
+                DataState.NetFinish -> isDataFinish = true
             }
         })
     }
-    private fun convertUpdateData(netData: List<StockPriceData>)
+    private fun observeStockRandomList()
     {
-        stockDataList.clear()
-        for (i in netData.indices)
-        {
-            val detailsList: MutableList<String> = mutableListOf()
-            if(netData[i].closePrice.isEmpty())
-                continue
-            val closeData: Float = netData[i].closePrice.toFloat()
-            val upDownData: Float = netData[i].upDown.toFloat()
-            val rangeData = upDownData / closeData * 100
-            val timeData = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-            val isUp = rangeData >= 0
-            detailsList.add(netData[i].closePrice)
-            detailsList.add(netData[i].upDown)
-            detailsList.add(String.format("%.2f", rangeData) + "%")
-            detailsList.add(timeData)
-
-            val detailData =  StockDetailData(closeData, upDownData, rangeData, timeData, isUp)
-            stockDetailDataList.add(detailData)
-            val data = StockData(netData[i].name, detailsList)
-            stockDataList.add(data)
-        }
-        mStockAdapter?.setStockDatas(stockDataList, stockDetailDataList)
-    }
-    private fun changeStockDetail(Index: Int)
-    {
-        val detailsList: MutableList<String> = mutableListOf()
-        val rand = Random()
-        val randRange = rand.nextFloat() * (maxRange - (-maxRange)) + -maxRange
-        val oldPrice = stockDetailDataList[Index].price
-        val newPrice = oldPrice + oldPrice * (randRange / 100)
-        val timeData = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-        stockDetailDataList[Index].upDown = newPrice - oldPrice
-        stockDetailDataList[Index].price = newPrice
-        stockDetailDataList[Index].range = randRange
-        stockDetailDataList[Index].time = timeData
-        stockDetailDataList[Index].isUp = randRange >= 0
-        detailsList.add(String.format("%.2f", newPrice))
-        detailsList.add(String.format("%.2f", stockDetailDataList[Index].upDown))
-        detailsList.add(String.format("%.2f", randRange) + "%")
-        detailsList.add(timeData)
-        stockDataList[Index].details = detailsList
-    }
-    private fun randomUpDown()
-    {
-        var randomInxList: MutableList<Int> = mutableListOf()
-        for (i in 1..perChangeStock)
-        {
-            var randomStockInx = (0 until stockDataList.size).random()
-            while (randomInxList.contains(randomStockInx))
+        viewModel.stockRandomList.observe(this, androidx.lifecycle.Observer {
+            var stockList = viewModel.getStockDataList()
+            var stockDetailList = viewModel.getStockDetailDataList()
+            for (index in it)
             {
-                randomStockInx = (0 until stockDataList.size).random()
+                mStockAdapter?.updateStockDatas(
+                    index,
+                    stockList[index],
+                    stockDetailList[index]
+                )
             }
-            randomInxList.add(randomStockInx)
-            changeStockDetail(randomStockInx)
-        }
-        mStockAdapter?.setStockDatas(stockDataList, stockDetailDataList)
-    }
-    private fun filterTopStock(netData : List<StockPriceData>) : List<StockPriceData>
-    {
-        val topList: MutableList<StockPriceData> = mutableListOf()
-        for (i in netData.indices)
-        {
-            if(StockOpenData.topStockList.contains(netData[i].stockId))
-            {
-                topList.add(netData[i])
-            }
-        }
-        return topList
+            mainHandler.postDelayed({
+                viewModel.endLineEffect(it)
+                for (index in it)
+                {
+                    mStockAdapter?.updateStockDatas(
+                        index,
+                        stockList[index],
+                        stockDetailList[index]
+                    )
+                } },lineEffectTime)
+        })
     }
     override fun scrollTo(l: Int, t: Int) {
         if (headHorizontalScrollView != null) {
