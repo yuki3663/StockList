@@ -93,7 +93,7 @@ public class StockAdapter extends RecyclerView.Adapter<com.tom.stocktable.adapte
             holder.mStockRecyclerView.setLayoutManager(new LinearLayoutManager(mContext, RecyclerView.HORIZONTAL, false));
             holder.mStockRecyclerView.setNestedScrollingEnabled(false);
 
-            // TODO：文本RecyclerView中具體信息的RecyclerView（RecyclerView嵌套）
+            //  文本RecyclerView中具體信息的RecyclerView（RecyclerView嵌套）
             StockItemAdapter stockItemAdapter = new StockItemAdapter(mContext);
             holder.mStockRecyclerView.setAdapter(stockItemAdapter);
             stockItemAdapter.setDetailDatas(StockDatas.get(position).getDetails(),
