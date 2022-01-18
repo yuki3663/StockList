@@ -10,4 +10,6 @@
     <color name="greenColor">#009A01</color>
     <color name="redColor">#E04644</color>
     <color name="tabTextColor">#6F6F71</color>
+    <color name="blue_200">#FFEEEEF8</color>
+    <color name="blue_500">#FF8393C4</color>
 </resources>

@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">StockTable</string>
+    <string name="login_title">Welcome Back!</string>
+    <string name="login_subtitle">Login to continue</string>
+    <string name="login_signIn">SIGN IN</string>
+    <string name="login_create">Create New Account</string>
+    <string name="reg_title">Registration</string>
+    <string name="reg_register">REGISTER</string>
+    <string name="input_name">Name</string>
+    <string name="input_email">Email</string>
+    <string name="input_password">Password</string>
 </resources>
