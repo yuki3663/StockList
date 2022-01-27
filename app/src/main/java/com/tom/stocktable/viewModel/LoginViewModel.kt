@@ -13,9 +13,16 @@ import retrofit2.Response
 
 
 class LoginViewModel : ViewModel() {
+
+    private val IsSignPass = MutableLiveData<Boolean>()
     private val IsRegisterPass = MutableLiveData<Boolean>()
     private val UserName = MutableLiveData<String>()
     private val AlertMessage = MutableLiveData<String?>()
+
+    fun GetIsSignPass(): LiveData<Boolean> {
+        return IsSignPass
+    }
+
     fun GetIsRegisterPass(): LiveData<Boolean> {
         return IsRegisterPass
     }
@@ -32,12 +39,13 @@ class LoginViewModel : ViewModel() {
         AlertMessage.postValue("")
     }
 
-    fun SendRegister(binding: FragmentRegistrationBinding) {
+    fun CheckRegister(binding: FragmentRegistrationBinding) {
         val email: String = binding.regInputEmail.getText().toString().trim()
         val password: String = binding.regInputPassword.getText().toString().trim()
         val firstName: String = binding.regInputName.getText().toString().trim()
-        val lastName = "Lee"
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+
+        IsRegisterPass.value = false
+        /*if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             AlertMessage.postValue("Email Address is required...!")
             binding.regInputEmail.requestFocus()
             return
@@ -56,14 +64,16 @@ class LoginViewModel : ViewModel() {
             AlertMessage.postValue("Name is required...!")
             binding.regInputName.requestFocus()
             return
-        }
-
+        }*/
+        IsRegisterPass.postValue(true)
     }
 
-    fun SendSignIn(binding: FragmentLoginBinding) {
+    fun CheckSignIn(binding: FragmentLoginBinding) {
         val email: String = binding.inputEmail.getText().toString().trim()
         val password: String = binding.inputPassword.getText().toString().trim()
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+
+        IsSignPass.value = false
+        /*if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             AlertMessage.postValue("Email Address is required...!")
             binding.inputEmail.requestFocus()
             return
@@ -72,6 +82,7 @@ class LoginViewModel : ViewModel() {
             AlertMessage.postValue("Password length must be 6 char...!")
             binding.inputPassword.requestFocus()
             return
-        }
+        }*/
+        IsSignPass.postValue(true)
     }
 }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_lobby_graph.xml"
+    app:startDestination="@id/marketFragment">
+    <fragment
+        android:id="@+id/marketFragment"
+        android:name="com.tom.stocktable.MarketFragment"
+        tools:layout="@layout/fragment_market" />
+    <fragment
+        android:id="@+id/ownFragment"
+        android:name="com.tom.stocktable.OwnFragment"
+        tools:layout="@layout/fragment_own" />
+    <fragment
+        android:id="@+id/exploreFragment"
+        android:name="com.tom.stocktable.ExploreFragment"
+        tools:layout="@layout/fragment_explore" />
+
+</navigation>

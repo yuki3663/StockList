@@ -9,9 +9,16 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.tom.stocktable.databinding.FragmentRegistrationBinding
+import com.tom.stocktable.viewModel.AccountDaoViewModel
+import com.tom.stocktable.viewModel.AccountDaoViewModelFactory
 import com.tom.stocktable.viewModel.LoginViewModel
 
 class RegistrationFragment : Fragment() {
+    private val dataBaseViewModel: AccountDaoViewModel by activityViewModels {
+        AccountDaoViewModelFactory(
+            (activity?.application as StockTableApplication).database.accountDao()
+        )
+    }
     private val loginViewModel: LoginViewModel by activityViewModels()
     private var _binding: FragmentRegistrationBinding? = null
     private val binding get() = _binding!!
@@ -20,8 +27,8 @@ class RegistrationFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        ObserveIsRegisterPass()
-        ObserveAlertMessage()
+        observeIsRegisterPass()
+        observeAlertMessage()
         _binding = FragmentRegistrationBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -29,27 +36,32 @@ class RegistrationFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding?.registrationFragment = this
+        binding.registrationFragment = this
     }
 
     fun onClickRegister() {
-        findNavController().navigate(R.id.action_registrationFragment_to_loginFragment)
+        loginViewModel.CheckRegister(binding)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
     }
 
-    private fun ObserveIsRegisterPass() {
+    private fun observeIsRegisterPass() {
         loginViewModel.GetIsRegisterPass().observe(this.viewLifecycleOwner) { IsRegisterPass ->
             if (IsRegisterPass) {
+                dataBaseViewModel.addNewAccount(
+                    binding.regInputEmail.text.toString(),
+                    binding.regInputPassword.text.toString(),
+                    binding.regInputName.text.toString()
+                )
                 findNavController().navigate(R.id.action_registrationFragment_to_loginFragment)
                 showAlert("Registration success")
             }
         }
     }
 
-    private fun ObserveAlertMessage() {
+    private fun observeAlertMessage() {
         loginViewModel.GetAlertMessage().observe(this.viewLifecycleOwner) { AlertMessage ->
             if (!AlertMessage.isNullOrBlank()) {
                 showAlert(AlertMessage)
